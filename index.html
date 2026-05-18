@@ -165,18 +165,24 @@
       letter-spacing: 0.06em;
     }
 
-    /* Prep input row */
-    #prep-input-row {
+    /* Settings row */
+    #settings-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 24px;
       margin-top: 32px;
       color: rgba(255,255,255,0.5);
       font-size: 0.85rem;
     }
 
-    #prep-minutes-input {
-      width: 64px;
+    .settings-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #prep-minutes-input, #constructive-input, #rebuttal-input {
+      width: 60px;
       padding: 6px 10px;
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.15);
@@ -211,7 +217,7 @@
       letter-spacing: 0.05em;
     }
 
-    /* Click to continue */
+    /* Click hints */
     #click-continue {
       position: fixed;
       bottom: 48px;
@@ -223,13 +229,90 @@
       display: none;
     }
 
+    #click-end-early {
+      position: fixed;
+      bottom: 48px;
+      left: 0; right: 0;
+      text-align: center;
+      color: rgba(255,255,255,0.25);
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      display: none;
+    }
+
+    /* Modal overlay */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #modal-content {
+      background: #222;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 32px 40px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    #modal-content h2 {
+      font-size: 1.3rem;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: white;
+    }
+
+    #modal-content p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    #modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      padding: 10px 24px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 200ms ease;
+    }
+
+    .modal-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    #confirm-end-btn {
+      background: rgba(220,100,100,0.4);
+      border-color: rgba(220,100,100,0.5);
+    }
+
+    #confirm-end-btn:hover {
+      background: rgba(220,100,100,0.6);
+    }
+
     /* Summary */
     #summary {
       display: none;
       flex-direction: column;
       align-items: center;
       width: 100%;
-      max-width: 560px;
+      max-width: 600px;
       padding: 24px;
       max-height: 100vh;
       overflow-y: auto;
@@ -239,13 +322,18 @@
       font-size: 2rem;
       font-weight: 300;
       letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    #summary-subtitle {
+      color: rgba(255,255,255,0.35);
+      font-size: 0.85rem;
       margin-bottom: 28px;
     }
 
-    #summary-table {
+    #summary-log {
       width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
 
     .summary-row {
@@ -263,6 +351,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1;
+      min-width: 0;
     }
 
     .summary-dot {
@@ -275,55 +365,71 @@
     .summary-step-name {
       font-size: 0.9rem;
       font-weight: 500;
+      white-space: nowrap;
     }
 
-    .summary-step-desc {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.35);
+    .summary-badge {
+      font-size: 0.7rem;
+      color: rgba(255,200,80,0.8);
+      background: rgba(255,200,80,0.1);
+      border: 1px solid rgba(255,200,80,0.2);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-left: 4px;
+      white-space: nowrap;
     }
 
     .summary-row-right {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      margin-left: 12px;
+      flex-shrink: 0;
     }
 
-    .summary-duration {
-      color: rgba(255,255,255,0.4);
-      font-size: 0.85rem;
+    .summary-scheduled {
+      color: rgba(255,255,255,0.3);
+      font-size: 0.8rem;
     }
 
-    .summary-status {
-      color: rgba(120,220,120,0.7);
-      font-size: 0.75rem;
+    .summary-time {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
       font-weight: 500;
-      letter-spacing: 0.05em;
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .summary-time.prep {
+      color: rgba(200,180,255,0.85);
     }
 
     #summary-prep {
       display: flex;
       gap: 32px;
-      margin-bottom: 32px;
-      color: rgba(255,255,255,0.6);
+      margin-bottom: 40px;
+      color: rgba(255,255,255,0.55);
       font-size: 0.9rem;
     }
 
-    #summary-prep span { color: white; font-weight: 500; }
+    #summary-prep strong { color: white; }
 
     #new-round-btn {
-      padding: 14px 40px;
+      padding: 14px 48px;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.08);
+      border: none;
+      background: #0d6e6e;
       color: white;
       font-size: 1rem;
       cursor: pointer;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       font-family: inherit;
+      font-weight: 500;
       transition: background 200ms ease;
     }
 
-    #new-round-btn:hover { background: rgba(255,255,255,0.15); }
+    #new-round-btn:hover { background: #0f8a8a; }
   </style>
 </head>
 <body>
@@ -358,10 +464,20 @@
       <span id="circle-click-label">Click to start</span>
     </button>
 
-    <!-- Prep input row (only before round starts) -->
-    <div id="prep-input-row">
-      <label for="prep-minutes-input">Prep time (minutes)</label>
-      <input type="number" id="prep-minutes-input" value="8" min="0" max="99" />
+    <!-- Settings row (before round starts) -->
+    <div id="settings-row" style="display:none;">
+      <div class="settings-group">
+        <label>Prep time (min)</label>
+        <input type="number" id="prep-minutes-input" value="8" min="0" max="99" />
+      </div>
+      <div class="settings-group">
+        <label>Constructive (min)</label>
+        <input type="number" id="constructive-input" value="8" min="1" max="99" />
+      </div>
+      <div class="settings-group">
+        <label>Rebuttal (min)</label>
+        <input type="number" id="rebuttal-input" value="5" min="1" max="99" />
+      </div>
     </div>
 
     <!-- Timer display -->
@@ -372,16 +488,30 @@
 
   </div>
 
-  <!-- Click to continue -->
+  <!-- Click hints -->
+  <div id="click-end-early">Click anywhere to end early</div>
   <div id="click-continue">Click anywhere to continue</div>
+
+  <!-- Confirmation modal -->
+  <div id="modal-overlay">
+    <div id="modal-content">
+      <h2>End early?</h2>
+      <p>Are you sure you want to end this speech early?</p>
+      <div id="modal-buttons">
+        <button class="modal-btn" id="cancel-end-btn">Cancel</button>
+        <button class="modal-btn" id="confirm-end-btn">End Now</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Summary -->
   <div id="summary">
     <h1>Round Complete</h1>
-    <div id="summary-rows"></div>
+    <div id="summary-subtitle">Chronological timeline</div>
+    <div id="summary-log"></div>
     <div id="summary-prep">
-      <div>AFF Prep remaining: <span id="summary-aff-prep">—</span></div>
-      <div>NEG Prep remaining: <span id="summary-neg-prep">—</span></div>
+      <span>AFF Prep remaining: <strong id="summary-aff-prep">—</strong></span>
+      <span>NEG Prep remaining: <strong id="summary-neg-prep">—</strong></span>
     </div>
     <button id="new-round-btn">Start New Round</button>
   </div>
@@ -391,44 +521,53 @@
 <script>
 (function() {
 
-  // ─── Round Data ───────────────────────────────────────────────────────────
-  const STEPS = [
-    { name:"1AC",  desc:"Affirmative speech",          dur:8*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
-    { name:"CX",   desc:"2nd Neg questions 1st Aff",   dur:3*60, color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
-    { name:"1NC",  desc:"Negative speech",             dur:8*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
-    { name:"CX",   desc:"1st Aff questions 1st Neg",   dur:3*60, color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
-    { name:"2AC",  desc:"Affirmative speech",          dur:8*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
-    { name:"CX",   desc:"1st Neg questions 2nd Aff",   dur:3*60, color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
-    { name:"2NC",  desc:"Negative speech",             dur:8*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
-    { name:"1NR",  desc:"Negative speech",             dur:5*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
-    { name:"1AR",  desc:"Affirmative speech",          dur:5*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
-    { name:"2NR",  desc:"Negative speech",             dur:5*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
-    { name:"2AR",  desc:"Affirmative speech",          dur:5*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
-  ];
-
   // ─── State ────────────────────────────────────────────────────────────────
-  let phase = "welcome";     // welcome | idle | running | ended | summary
+  let phase = "welcome";
   let currentStep = 0;
   let roundStarted = false;
   let showMs = true;
 
+  let constructiveMins = 8;
+  let rebuttalMins = 5;
   let prepMinutes = 8;
-  let affPrep = 8 * 60 * 1000;   // ms
+  let affPrep = 8 * 60 * 1000;
   let negPrep = 8 * 60 * 1000;
-  let prepRunning = null;         // null | "aff" | "neg"
+  let prepRunning = null;
   let prepStartTime = 0;
   let prepStartValue = 0;
   let prepRaf = null;
 
   let timerRaf = null;
   let timerStart = 0;
-  let timerDuration = 0;       // ms
+  let timerDuration = 0;
   let timeRemaining = 0;
   let warningApplied = false;
 
   let isFlashing = false;
   let flashInterval = null;
   let flashOn = true;
+
+  let eventLog = [];
+  let confirmingEarlyEnd = false;
+
+  // ─── Dynamic step building ────────────────────────────────────────────────
+  function buildSteps() {
+    return [
+      { name:"1AC",  desc:"Affirmative speech",        dur:constructiveMins*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+      { name:"CX",   desc:"2nd Neg questions 1st Aff", dur:3*60,                color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
+      { name:"1NC",  desc:"Negative speech",           dur:constructiveMins*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+      { name:"CX",   desc:"1st Aff questions 1st Neg", dur:3*60,                color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
+      { name:"2AC",  desc:"Affirmative speech",        dur:constructiveMins*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+      { name:"CX",   desc:"1st Neg questions 2nd Aff", dur:3*60,                color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
+      { name:"2NC",  desc:"Negative speech",           dur:constructiveMins*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+      { name:"1NR",  desc:"Negative speech",           dur:rebuttalMins*60,     color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+      { name:"1AR",  desc:"Affirmative speech",        dur:rebuttalMins*60,     color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+      { name:"2NR",  desc:"Negative speech",           dur:rebuttalMins*60,     color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+      { name:"2AR",  desc:"Affirmative speech",        dur:rebuttalMins*60,     color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+    ];
+  }
+
+  let STEPS = buildSteps();
 
   // ─── DOM refs ─────────────────────────────────────────────────────────────
   const $app         = document.getElementById('app');
@@ -443,17 +582,24 @@
   const $circleBtn   = document.getElementById('circle-btn');
   const $stepName    = document.getElementById('circle-step-name');
   const $stepDesc    = document.getElementById('circle-step-desc');
-  const $prepRow     = document.getElementById('prep-input-row');
+  const $settingsRow = document.getElementById('settings-row');
   const $prepInput   = document.getElementById('prep-minutes-input');
+  const $constructiveInput = document.getElementById('constructive-input');
+  const $rebuttalInput = document.getElementById('rebuttal-input');
   const $timerWrap   = document.getElementById('timer-display');
   const $timerDigits = document.getElementById('timer-digits');
   const $timerLabel  = document.getElementById('timer-label');
+  const $clickEndEarly = document.getElementById('click-end-early');
   const $clickCont   = document.getElementById('click-continue');
   const $summary     = document.getElementById('summary');
-  const $sumRows     = document.getElementById('summary-rows');
+  const $sumLog      = document.getElementById('summary-log');
   const $sumAff      = document.getElementById('summary-aff-prep');
   const $sumNeg      = document.getElementById('summary-neg-prep');
   const $newRound    = document.getElementById('new-round-btn');
+  const $modalOverlay = document.getElementById('modal-overlay');
+  const $modalContent = document.getElementById('modal-content');
+  const $cancelBtn   = document.getElementById('cancel-end-btn');
+  const $confirmBtn  = document.getElementById('confirm-end-btn');
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
   function pad(n, len=2) { return String(n).padStart(len, '0'); }
@@ -473,9 +619,10 @@
     return `${m}:${pad(s)}`;
   }
 
-  function fmtDuration(sec) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
+  function fmtSecs(secs) {
+    if (secs == null) return "—";
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
     return `${m}:${pad(s)}`;
   }
 
@@ -483,7 +630,7 @@
     if (instant) {
       $app.style.transition = 'none';
       $app.style.backgroundColor = color;
-      void $app.offsetWidth; // reflow
+      void $app.offsetWidth;
       $app.style.transition = 'background-color 600ms ease';
     } else {
       $app.style.transition = isFlashing ? 'none' : 'background-color 600ms ease';
@@ -494,13 +641,11 @@
   function updatePrepBtns() {
     $affBtn.textContent = `AFF Prep — ${fmtPrep(affPrep)}`;
     $negBtn.textContent = `NEG Prep — ${fmtPrep(negPrep)}`;
-
     $affBtn.className = 'prep-btn';
     $negBtn.className = 'prep-btn';
 
     if (affPrep <= 0 && prepRunning !== 'aff') {
       $affBtn.classList.add('exhausted');
-      $affBtn.style.background = '';
     } else if (prepRunning === 'aff') {
       $affBtn.classList.add('running');
       $affBtn.style.background = 'rgba(139,26,26,0.6)';
@@ -510,7 +655,6 @@
 
     if (negPrep <= 0 && prepRunning !== 'neg') {
       $negBtn.classList.add('exhausted');
-      $negBtn.style.background = '';
     } else if (prepRunning === 'neg') {
       $negBtn.classList.add('running');
       $negBtn.style.background = 'rgba(26,77,46,0.6)';
@@ -552,13 +696,11 @@
     $mainCenter.style.display = 'flex';
     $timerWrap.style.display = 'none';
     $circleBtn.style.display = 'flex';
+    $clickEndEarly.style.display = 'none';
     $clickCont.style.display = 'none';
     $stopFlash.style.display = 'none';
 
-    // Prep row only before round starts
-    $prepRow.style.display = roundStarted ? 'none' : 'flex';
-
-    // Prep buttons: only for speech steps, not CX
+    $settingsRow.style.display = roundStarted ? 'none' : 'flex';
     const showPrep = roundStarted && step.type === 'speech';
     $prepArea.style.display = showPrep || prepRunning ? 'flex' : 'none';
     updatePrepBtns();
@@ -579,9 +721,10 @@
     const step = STEPS[currentStep];
 
     $circleBtn.style.display = 'none';
-    $prepRow.style.display = 'none';
+    $settingsRow.style.display = 'none';
     $prepArea.style.display = 'none';
     $timerWrap.style.display = 'flex';
+    $clickEndEarly.style.display = 'block';
     $timerLabel.textContent = `${step.name} — ${step.desc}`;
     $clickCont.style.display = 'none';
 
@@ -618,14 +761,35 @@
     isFlashing = true;
     flashOn = true;
     $stopFlash.style.display = 'block';
+    $clickEndEarly.style.display = 'none';
     $clickCont.style.display = 'block';
 
     const step = STEPS[currentStep];
+    const actualSecs = STEPS[currentStep].dur;
+    eventLog.push({ type: step.type, label: `${step.name} — ${step.desc}`, scheduledSecs: actualSecs, actualSecs, early: false, team: step.team || null, color: step.color });
+
     flashInterval = setInterval(() => {
       flashOn = !flashOn;
       $app.style.transition = 'none';
       $app.style.backgroundColor = flashOn ? step.colorDark : '#0a0a0a';
     }, 500);
+  }
+
+  function timerEndEarly(actualSecs) {
+    phase = 'ended';
+    isFlashing = false;
+    flashOn = true;
+    $stopFlash.style.display = 'none';
+    $clickEndEarly.style.display = 'none';
+    $clickCont.style.display = 'block';
+
+    const step = STEPS[currentStep];
+    eventLog.push({ type: step.type, label: `${step.name} — ${step.desc}`, scheduledSecs: STEPS[currentStep].dur, actualSecs: Math.round(actualSecs), early: true, team: step.team || null, color: step.color });
+
+    $app.style.transition = 'none';
+    $app.style.backgroundColor = step.colorDark;
+    void $app.offsetWidth;
+    $app.style.transition = 'background-color 600ms ease';
   }
 
   function stopFlashing() {
@@ -640,8 +804,33 @@
     $app.style.transition = 'background-color 600ms ease';
   }
 
+  // ─── End early flow ──────────────────────────────────────────────────────
+  function showEndEarlyConfirm() {
+    confirmingEarlyEnd = true;
+    $modalOverlay.style.display = 'flex';
+  }
+
+  function cancelEndEarly() {
+    confirmingEarlyEnd = false;
+    $modalOverlay.style.display = 'none';
+  }
+
+  function confirmEndEarly() {
+    confirmingEarlyEnd = false;
+    $modalOverlay.style.display = 'none';
+    if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    const elapsed = performance.now() - timerStart;
+    const actualSecs = Math.round(Math.min(elapsed, timerDuration) / 1000);
+    timerEndEarly(actualSecs);
+  }
+
   // ─── Click to continue ───────────────────────────────────────────────────
   function handleClickContinue() {
+    if (confirmingEarlyEnd) return;
+    if (phase === 'running') {
+      showEndEarlyConfirm();
+      return;
+    }
     if (phase !== 'ended') return;
 
     stopFlashing();
@@ -674,6 +863,8 @@
       updatePrepBtns();
 
       if (remaining <= 0) {
+        const usedSecs = Math.round(prepStartValue / 1000);
+        eventLog.push({ type: 'prep', label: team === 'aff' ? 'AFF Prep' : 'NEG Prep', scheduledSecs: null, actualSecs: usedSecs, early: false, team, color: team === 'aff' ? '#8b1a1a' : '#1a4d2e' });
         prepRunning = null;
         setBg('#1a1a1a');
         updatePrepBtns();
@@ -690,6 +881,8 @@
     const remaining = Math.max(0, prepStartValue - elapsed);
     if (team === 'aff') affPrep = remaining;
     else negPrep = remaining;
+    const usedSecs = Math.round((prepStartValue - remaining) / 1000);
+    eventLog.push({ type: 'prep', label: team === 'aff' ? 'AFF Prep' : 'NEG Prep', scheduledSecs: null, actualSecs: usedSecs, early: false, team, color: team === 'aff' ? '#8b1a1a' : '#1a4d2e' });
     prepRunning = null;
     setBg('#1a1a1a');
     updatePrepBtns();
@@ -704,23 +897,27 @@
     $prepArea.style.display = 'none';
     $stopFlash.style.display = 'none';
 
-    // Build rows
-    $sumRows.innerHTML = '';
-    STEPS.forEach(s => {
+    // Build log from eventLog
+    $sumLog.innerHTML = '';
+    eventLog.forEach(entry => {
       const row = document.createElement('div');
       row.className = 'summary-row';
-      row.innerHTML = `
+      let html = `
         <div class="summary-row-left">
-          <div class="summary-dot" style="background:${s.color}"></div>
-          <span class="summary-step-name">${s.name}</span>
-          <span class="summary-step-desc">${s.desc}</span>
-        </div>
-        <div class="summary-row-right">
-          <span class="summary-duration">${fmtDuration(s.dur)}</span>
-          <span class="summary-status">Completed</span>
-        </div>
+          <div class="summary-dot" style="background:${entry.color}"></div>
+          <span class="summary-step-name">${entry.label}</span>
       `;
-      $sumRows.appendChild(row);
+      if (entry.early) {
+        html += `<span class="summary-badge">ended early</span>`;
+      }
+      html += `</div><div class="summary-row-right">`;
+      if (entry.scheduledSecs != null) {
+        html += `<span class="summary-scheduled">of ${fmtSecs(entry.scheduledSecs)}</span>`;
+      }
+      html += `<span class="summary-time${entry.type === 'prep' ? ' prep' : ''}">${fmtSecs(entry.actualSecs)}</span>`;
+      html += `</div>`;
+      row.innerHTML = html;
+      $sumLog.appendChild(row);
     });
 
     $sumAff.textContent = fmtPrep(affPrep);
@@ -739,15 +936,21 @@
     currentStep = 0;
     roundStarted = false;
     showMs = true;
+    constructiveMins = 8;
+    rebuttalMins = 5;
     prepMinutes = 8;
     affPrep = 8 * 60 * 1000;
     negPrep = 8 * 60 * 1000;
     prepRunning = null;
     isFlashing = false;
     flashOn = true;
+    eventLog = [];
+    STEPS = buildSteps();
 
     $msCheckbox.checked = true;
     $prepInput.value = 8;
+    $constructiveInput.value = 8;
+    $rebuttalInput.value = 5;
     $welcome.style.opacity = '0';
     $welcome.style.transition = 'none';
     $welcome.style.display = '';
@@ -755,6 +958,7 @@
     $app.style.backgroundColor = '#1a1a1a';
     void $app.offsetWidth;
     $app.style.transition = 'background-color 600ms ease';
+    $modalOverlay.style.display = 'none';
 
     setTimeout(() => startWelcome(), 50);
   }
@@ -805,10 +1009,35 @@
     updatePrepBtns();
   });
 
+  $constructiveInput.addEventListener('input', () => {
+    const v = Math.max(1, Math.min(99, parseInt($constructiveInput.value) || 1));
+    constructiveMins = v;
+    STEPS = buildSteps();
+  });
+
+  $rebuttalInput.addEventListener('input', () => {
+    const v = Math.max(1, Math.min(99, parseInt($rebuttalInput.value) || 1));
+    rebuttalMins = v;
+    STEPS = buildSteps();
+  });
+
   $prepInput.addEventListener('click', (e) => e.stopPropagation());
+  $constructiveInput.addEventListener('click', (e) => e.stopPropagation());
+  $rebuttalInput.addEventListener('click', (e) => e.stopPropagation());
+  $settingsRow.addEventListener('click', (e) => e.stopPropagation());
+
+  $cancelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cancelEndEarly();
+  });
+
+  $confirmBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    confirmEndEarly();
+  });
 
   $app.addEventListener('click', () => {
-    if (phase === 'ended') handleClickContinue();
+    handleClickToContinue();
   });
 
   $newRound.addEventListener('click', (e) => {
