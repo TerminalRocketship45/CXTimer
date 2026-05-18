@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CXTimer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 600ms ease;
+    }
+
+    /* Welcome */
+    #welcome {
+      font-size: 2.5rem;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      opacity: 0;
+      transition: opacity 1s ease;
+      text-align: center;
+    }
+
+    /* Top bar */
+    #topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      z-index: 100;
+    }
+
+    #ms-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    #ms-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: white;
+      cursor: pointer;
+    }
+
+    #stop-flash-btn {
+      display: none;
+      color: white;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #stop-flash-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* Prep area */
+    #prep-area {
+      position: fixed;
+      top: 64px;
+      left: 0; right: 0;
+      display: none;
+      justify-content: center;
+      gap: 16px;
+      z-index: 90;
+    }
+
+    .prep-btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.95rem;
+      cursor: pointer;
+      min-width: 170px;
+      transition: all 200ms ease;
+      font-family: inherit;
+      color: white;
+    }
+
+    #aff-prep-btn { background: rgba(139,26,26,0.25); }
+    #neg-prep-btn { background: rgba(26,77,46,0.25); }
+
+    .prep-btn.running {
+      border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .prep-btn.exhausted {
+      background: rgba(255,255,255,0.05) !important;
+      color: rgba(255,255,255,0.25);
+      cursor: default;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Main center */
+    #main-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Circle button */
+    #circle-btn {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      transition: all 300ms ease;
+      opacity: 1;
+    }
+
+    #circle-btn:hover {
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    #circle-step-name {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    #circle-step-desc {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 6px;
+      max-width: 160px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    #circle-click-label {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 12px;
+      letter-spacing: 0.06em;
+    }
+
+    /* Prep input row */
+    #prep-input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 32px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+    }
+
+    #prep-minutes-input {
+      width: 64px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+    }
+
+    /* Timer display */
+    #timer-display {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #timer-digits {
+      font-size: clamp(4rem, 11vw, 7.5rem);
+      font-weight: 200;
+      color: white;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    #timer-label {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.95rem;
+      margin-top: 16px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Click to continue */
+    #click-continue {
+      position: fixed;
+      bottom: 48px;
+      left: 0; right: 0;
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      display: none;
+    }
+
+    /* Summary */
+    #summary {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 560px;
+      padding: 24px;
+      max-height: 100vh;
+      overflow-y: auto;
+    }
+
+    #summary h1 {
+      font-size: 2rem;
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      margin-bottom: 28px;
+    }
+
+    #summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .summary-row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .summary-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .summary-step-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .summary-step-desc {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .summary-row-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .summary-duration {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.85rem;
+    }
+
+    .summary-status {
+      color: rgba(120,220,120,0.7);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    #summary-prep {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 32px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.9rem;
+    }
+
+    #summary-prep span { color: white; font-weight: 500; }
+
+    #new-round-btn {
+      padding: 14px 40px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      font-family: inherit;
+      transition: background 200ms ease;
+    }
+
+    #new-round-btn:hover { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Welcome -->
+  <div id="welcome">Hey, Welcome to CXTimer!</div>
+
+  <!-- Top bar -->
+  <div id="topbar" style="display:none;">
+    <label id="ms-label">
+      <input type="checkbox" id="ms-checkbox" checked />
+      Show milliseconds
+    </label>
+    <button id="stop-flash-btn">Stop Flashing</button>
+  </div>
+
+  <!-- Prep buttons -->
+  <div id="prep-area">
+    <button class="prep-btn" id="aff-prep-btn">AFF Prep — 8:00</button>
+    <button class="prep-btn" id="neg-prep-btn">NEG Prep — 8:00</button>
+  </div>
+
+  <!-- Main center -->
+  <div id="main-center">
+
+    <!-- Circle button -->
+    <button id="circle-btn">
+      <span id="circle-step-name">1AC</span>
+      <span id="circle-step-desc">Affirmative speech</span>
+      <span id="circle-click-label">Click to start</span>
+    </button>
+
+    <!-- Prep input row (only before round starts) -->
+    <div id="prep-input-row">
+      <label for="prep-minutes-input">Prep time (minutes)</label>
+      <input type="number" id="prep-minutes-input" value="8" min="0" max="99" />
+    </div>
+
+    <!-- Timer display -->
+    <div id="timer-display">
+      <div id="timer-digits">8:00:00</div>
+      <div id="timer-label">1AC — Affirmative speech</div>
+    </div>
+
+  </div>
+
+  <!-- Click to continue -->
+  <div id="click-continue">Click anywhere to continue</div>
+
+  <!-- Summary -->
+  <div id="summary">
+    <h1>Round Complete</h1>
+    <div id="summary-rows"></div>
+    <div id="summary-prep">
+      <div>AFF Prep remaining: <span id="summary-aff-prep">—</span></div>
+      <div>NEG Prep remaining: <span id="summary-neg-prep">—</span></div>
+    </div>
+    <button id="new-round-btn">Start New Round</button>
+  </div>
+
+</div>
+
+<script>
+(function() {
+
+  // ─── Round Data ───────────────────────────────────────────────────────────
+  const STEPS = [
+    { name:"1AC",  desc:"Affirmative speech",          dur:8*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+    { name:"CX",   desc:"2nd Neg questions 1st Aff",   dur:3*60, color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
+    { name:"1NC",  desc:"Negative speech",             dur:8*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+    { name:"CX",   desc:"1st Aff questions 1st Neg",   dur:3*60, color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
+    { name:"2AC",  desc:"Affirmative speech",          dur:8*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+    { name:"CX",   desc:"1st Neg questions 2nd Aff",   dur:3*60, color:"#3d1a5c", colorDark:"#2e1345", type:"cx" },
+    { name:"2NC",  desc:"Negative speech",             dur:8*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+    { name:"1NR",  desc:"Negative speech",             dur:5*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+    { name:"1AR",  desc:"Affirmative speech",          dur:5*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+    { name:"2NR",  desc:"Negative speech",             dur:5*60, color:"#1a4d2e", colorDark:"#143d24", type:"speech", team:"neg" },
+    { name:"2AR",  desc:"Affirmative speech",          dur:5*60, color:"#8b1a1a", colorDark:"#6e1515", type:"speech", team:"aff" },
+  ];
+
+  // ─── State ────────────────────────────────────────────────────────────────
+  let phase = "welcome";     // welcome | idle | running | ended | summary
+  let currentStep = 0;
+  let roundStarted = false;
+  let showMs = true;
+
+  let prepMinutes = 8;
+  let affPrep = 8 * 60 * 1000;   // ms
+  let negPrep = 8 * 60 * 1000;
+  let prepRunning = null;         // null | "aff" | "neg"
+  let prepStartTime = 0;
+  let prepStartValue = 0;
+  let prepRaf = null;
+
+  let timerRaf = null;
+  let timerStart = 0;
+  let timerDuration = 0;       // ms
+  let timeRemaining = 0;
+  let warningApplied = false;
+
+  let isFlashing = false;
+  let flashInterval = null;
+  let flashOn = true;
+
+  // ─── DOM refs ─────────────────────────────────────────────────────────────
+  const $app         = document.getElementById('app');
+  const $welcome     = document.getElementById('welcome');
+  const $topbar      = document.getElementById('topbar');
+  const $msCheckbox  = document.getElementById('ms-checkbox');
+  const $stopFlash   = document.getElementById('stop-flash-btn');
+  const $prepArea    = document.getElementById('prep-area');
+  const $affBtn      = document.getElementById('aff-prep-btn');
+  const $negBtn      = document.getElementById('neg-prep-btn');
+  const $mainCenter  = document.getElementById('main-center');
+  const $circleBtn   = document.getElementById('circle-btn');
+  const $stepName    = document.getElementById('circle-step-name');
+  const $stepDesc    = document.getElementById('circle-step-desc');
+  const $prepRow     = document.getElementById('prep-input-row');
+  const $prepInput   = document.getElementById('prep-minutes-input');
+  const $timerWrap   = document.getElementById('timer-display');
+  const $timerDigits = document.getElementById('timer-digits');
+  const $timerLabel  = document.getElementById('timer-label');
+  const $clickCont   = document.getElementById('click-continue');
+  const $summary     = document.getElementById('summary');
+  const $sumRows     = document.getElementById('summary-rows');
+  const $sumAff      = document.getElementById('summary-aff-prep');
+  const $sumNeg      = document.getElementById('summary-neg-prep');
+  const $newRound    = document.getElementById('new-round-btn');
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
+  function pad(n, len=2) { return String(n).padStart(len, '0'); }
+
+  function fmtTimer(ms, withMs) {
+    const total = Math.max(0, ms);
+    const m = Math.floor(total / 60000);
+    const s = Math.floor((total % 60000) / 1000);
+    const h = Math.floor((total % 1000) / 10);
+    return withMs ? `${m}:${pad(s)}:${pad(h)}` : `${m}:${pad(s)}`;
+  }
+
+  function fmtPrep(ms) {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${m}:${pad(s)}`;
+  }
+
+  function fmtDuration(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${pad(s)}`;
+  }
+
+  function setBg(color, instant=false) {
+    if (instant) {
+      $app.style.transition = 'none';
+      $app.style.backgroundColor = color;
+      void $app.offsetWidth; // reflow
+      $app.style.transition = 'background-color 600ms ease';
+    } else {
+      $app.style.transition = isFlashing ? 'none' : 'background-color 600ms ease';
+      $app.style.backgroundColor = color;
+    }
+  }
+
+  function updatePrepBtns() {
+    $affBtn.textContent = `AFF Prep — ${fmtPrep(affPrep)}`;
+    $negBtn.textContent = `NEG Prep — ${fmtPrep(negPrep)}`;
+
+    $affBtn.className = 'prep-btn';
+    $negBtn.className = 'prep-btn';
+
+    if (affPrep <= 0 && prepRunning !== 'aff') {
+      $affBtn.classList.add('exhausted');
+      $affBtn.style.background = '';
+    } else if (prepRunning === 'aff') {
+      $affBtn.classList.add('running');
+      $affBtn.style.background = 'rgba(139,26,26,0.6)';
+    } else {
+      $affBtn.style.background = 'rgba(139,26,26,0.25)';
+    }
+
+    if (negPrep <= 0 && prepRunning !== 'neg') {
+      $negBtn.classList.add('exhausted');
+      $negBtn.style.background = '';
+    } else if (prepRunning === 'neg') {
+      $negBtn.classList.add('running');
+      $negBtn.style.background = 'rgba(26,77,46,0.6)';
+    } else {
+      $negBtn.style.background = 'rgba(26,77,46,0.25)';
+    }
+  }
+
+  function updateCircleGlow() {
+    const step = STEPS[currentStep];
+    $circleBtn.style.boxShadow = `inset 0 0 40px ${step.color}44, 0 0 20px ${step.color}22`;
+  }
+
+  // ─── Welcome sequence ────────────────────────────────────────────────────
+  function startWelcome() {
+    $welcome.style.display = '';
+    $topbar.style.display = 'none';
+    $mainCenter.style.display = 'none';
+    $prepArea.style.display = 'none';
+    $summary.style.display = 'none';
+    setBg('#1a1a1a', true);
+
+    setTimeout(() => { $welcome.style.opacity = '1'; }, 50);
+    setTimeout(() => { $welcome.style.opacity = '0'; }, 3000);
+    setTimeout(() => {
+      $welcome.style.display = 'none';
+      showIdleScreen();
+    }, 4000);
+  }
+
+  // ─── Idle screen ─────────────────────────────────────────────────────────
+  function showIdleScreen() {
+    phase = 'idle';
+    const step = STEPS[currentStep];
+
+    $welcome.style.display = 'none';
+    $summary.style.display = 'none';
+    $topbar.style.display = 'flex';
+    $mainCenter.style.display = 'flex';
+    $timerWrap.style.display = 'none';
+    $circleBtn.style.display = 'flex';
+    $clickCont.style.display = 'none';
+    $stopFlash.style.display = 'none';
+
+    // Prep row only before round starts
+    $prepRow.style.display = roundStarted ? 'none' : 'flex';
+
+    // Prep buttons: only for speech steps, not CX
+    const showPrep = roundStarted && step.type === 'speech';
+    $prepArea.style.display = showPrep || prepRunning ? 'flex' : 'none';
+    updatePrepBtns();
+
+    $stepName.textContent = step.name;
+    $stepDesc.textContent = step.desc;
+    updateCircleGlow();
+
+    setBg('#1a1a1a');
+  }
+
+  // ─── Timer ───────────────────────────────────────────────────────────────
+  function startTimer() {
+    if (prepRunning) stopPrep(prepRunning);
+
+    phase = 'running';
+    roundStarted = true;
+    const step = STEPS[currentStep];
+
+    $circleBtn.style.display = 'none';
+    $prepRow.style.display = 'none';
+    $prepArea.style.display = 'none';
+    $timerWrap.style.display = 'flex';
+    $timerLabel.textContent = `${step.name} — ${step.desc}`;
+    $clickCont.style.display = 'none';
+
+    setBg(step.color);
+    warningApplied = false;
+
+    timerDuration = step.dur * 1000;
+    timerStart = performance.now();
+    timeRemaining = timerDuration;
+    $timerDigits.textContent = fmtTimer(timeRemaining, showMs);
+
+    function tick() {
+      const elapsed = performance.now() - timerStart;
+      timeRemaining = Math.max(0, timerDuration - elapsed);
+      $timerDigits.textContent = fmtTimer(timeRemaining, showMs);
+
+      if (!warningApplied && timeRemaining <= 60000 && timeRemaining > 0) {
+        warningApplied = true;
+        setBg(step.colorDark);
+      }
+
+      if (timeRemaining <= 0) {
+        $timerDigits.textContent = fmtTimer(0, showMs);
+        timerEnd();
+        return;
+      }
+      timerRaf = requestAnimationFrame(tick);
+    }
+    timerRaf = requestAnimationFrame(tick);
+  }
+
+  function timerEnd() {
+    phase = 'ended';
+    isFlashing = true;
+    flashOn = true;
+    $stopFlash.style.display = 'block';
+    $clickCont.style.display = 'block';
+
+    const step = STEPS[currentStep];
+    flashInterval = setInterval(() => {
+      flashOn = !flashOn;
+      $app.style.transition = 'none';
+      $app.style.backgroundColor = flashOn ? step.colorDark : '#0a0a0a';
+    }, 500);
+  }
+
+  function stopFlashing() {
+    if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
+    isFlashing = false;
+    flashOn = true;
+    $stopFlash.style.display = 'none';
+    const step = STEPS[currentStep];
+    $app.style.transition = 'none';
+    $app.style.backgroundColor = step.colorDark;
+    void $app.offsetWidth;
+    $app.style.transition = 'background-color 600ms ease';
+  }
+
+  // ─── Click to continue ───────────────────────────────────────────────────
+  function handleClickContinue() {
+    if (phase !== 'ended') return;
+
+    stopFlashing();
+
+    if (currentStep >= STEPS.length - 1) {
+      showSummary();
+    } else {
+      currentStep++;
+      showIdleScreen();
+    }
+  }
+
+  // ─── Prep ─────────────────────────────────────────────────────────────────
+  function startPrep(team) {
+    if (prepRunning === team) { stopPrep(team); return; }
+    if (team === 'aff' && affPrep <= 0) return;
+    if (team === 'neg' && negPrep <= 0) return;
+
+    prepRunning = team;
+    prepStartTime = performance.now();
+    prepStartValue = team === 'aff' ? affPrep : negPrep;
+    setBg('#1a2a3a');
+    updatePrepBtns();
+
+    function tick() {
+      const elapsed = performance.now() - prepStartTime;
+      const remaining = Math.max(0, prepStartValue - elapsed);
+      if (team === 'aff') affPrep = remaining;
+      else negPrep = remaining;
+      updatePrepBtns();
+
+      if (remaining <= 0) {
+        prepRunning = null;
+        setBg('#1a1a1a');
+        updatePrepBtns();
+        return;
+      }
+      prepRaf = requestAnimationFrame(tick);
+    }
+    prepRaf = requestAnimationFrame(tick);
+  }
+
+  function stopPrep(team) {
+    if (prepRaf) { cancelAnimationFrame(prepRaf); prepRaf = null; }
+    const elapsed = performance.now() - prepStartTime;
+    const remaining = Math.max(0, prepStartValue - elapsed);
+    if (team === 'aff') affPrep = remaining;
+    else negPrep = remaining;
+    prepRunning = null;
+    setBg('#1a1a1a');
+    updatePrepBtns();
+  }
+
+  // ─── Summary ─────────────────────────────────────────────────────────────
+  function showSummary() {
+    phase = 'summary';
+    setBg('#1a1a1a');
+    $mainCenter.style.display = 'none';
+    $clickCont.style.display = 'none';
+    $prepArea.style.display = 'none';
+    $stopFlash.style.display = 'none';
+
+    // Build rows
+    $sumRows.innerHTML = '';
+    STEPS.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'summary-row';
+      row.innerHTML = `
+        <div class="summary-row-left">
+          <div class="summary-dot" style="background:${s.color}"></div>
+          <span class="summary-step-name">${s.name}</span>
+          <span class="summary-step-desc">${s.desc}</span>
+        </div>
+        <div class="summary-row-right">
+          <span class="summary-duration">${fmtDuration(s.dur)}</span>
+          <span class="summary-status">Completed</span>
+        </div>
+      `;
+      $sumRows.appendChild(row);
+    });
+
+    $sumAff.textContent = fmtPrep(affPrep);
+    $sumNeg.textContent = fmtPrep(negPrep);
+
+    $summary.style.display = 'flex';
+  }
+
+  // ─── Reset ───────────────────────────────────────────────────────────────
+  function resetAll() {
+    if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    if (prepRaf) { cancelAnimationFrame(prepRaf); prepRaf = null; }
+    if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
+
+    phase = 'welcome';
+    currentStep = 0;
+    roundStarted = false;
+    showMs = true;
+    prepMinutes = 8;
+    affPrep = 8 * 60 * 1000;
+    negPrep = 8 * 60 * 1000;
+    prepRunning = null;
+    isFlashing = false;
+    flashOn = true;
+
+    $msCheckbox.checked = true;
+    $prepInput.value = 8;
+    $welcome.style.opacity = '0';
+    $welcome.style.transition = 'none';
+    $welcome.style.display = '';
+    $app.style.transition = 'none';
+    $app.style.backgroundColor = '#1a1a1a';
+    void $app.offsetWidth;
+    $app.style.transition = 'background-color 600ms ease';
+
+    setTimeout(() => startWelcome(), 50);
+  }
+
+  // ─── Events ──────────────────────────────────────────────────────────────
+  $msCheckbox.addEventListener('change', () => {
+    showMs = $msCheckbox.checked;
+    if (phase === 'running' || phase === 'ended') {
+      $timerDigits.textContent = fmtTimer(timeRemaining, showMs);
+    }
+  });
+
+  $stopFlash.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stopFlashing();
+  });
+
+  $circleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (phase === 'idle') startTimer();
+  });
+
+  $circleBtn.addEventListener('mouseenter', () => {
+    const step = STEPS[currentStep];
+    $circleBtn.style.boxShadow = `inset 0 0 60px ${step.color}66, 0 0 30px ${step.color}33`;
+    $circleBtn.style.borderColor = 'rgba(255,255,255,0.25)';
+  });
+  $circleBtn.addEventListener('mouseleave', () => {
+    updateCircleGlow();
+    $circleBtn.style.borderColor = 'rgba(255,255,255,0.12)';
+  });
+
+  $affBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!$affBtn.classList.contains('exhausted')) startPrep('aff');
+  });
+
+  $negBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!$negBtn.classList.contains('exhausted')) startPrep('neg');
+  });
+
+  $prepInput.addEventListener('input', () => {
+    const v = Math.max(0, Math.min(99, parseInt($prepInput.value) || 0));
+    prepMinutes = v;
+    affPrep = v * 60 * 1000;
+    negPrep = v * 60 * 1000;
+    updatePrepBtns();
+  });
+
+  $prepInput.addEventListener('click', (e) => e.stopPropagation());
+
+  $app.addEventListener('click', () => {
+    if (phase === 'ended') handleClickContinue();
+  });
+
+  $newRound.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetAll();
+  });
+
+  // ─── Boot ─────────────────────────────────────────────────────────────────
+  $mainCenter.style.display = 'none';
+  startWelcome();
+
+})();
+</script>
+</body>
+</html>
