@@ -50,6 +50,17 @@
       opacity: 0;
       transition: opacity 1s ease;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #welcome-hint {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 14px;
+      letter-spacing: 0.06em;
+      font-weight: 300;
     }
 
     /* Top bar */
@@ -446,6 +457,68 @@
     }
 
     #new-round-btn:hover { background: #0f8a8a; }
+
+    #pause-btn {
+      display: none;
+      margin-top: 28px;
+      padding: 10px 32px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.65);
+      font-size: 0.88rem;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.07em;
+      transition: background 200ms ease, color 200ms ease;
+    }
+
+    #pause-btn:hover {
+      background: rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.9);
+    }
+
+    #pause-controls {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 28px;
+      gap: 18px;
+    }
+
+    #pause-state-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 300;
+    }
+
+    #pause-action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .pause-action-btn {
+      padding: 10px 28px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 200ms ease;
+    }
+
+    .pause-action-btn:hover { background: rgba(255,255,255,0.18); }
+
+    #end-from-pause-btn {
+      background: rgba(220,100,100,0.3);
+      border-color: rgba(220,100,100,0.4);
+    }
+
+    #end-from-pause-btn:hover { background: rgba(220,100,100,0.5); }
   </style>
 </head>
 <body>
@@ -457,7 +530,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div id="app">
 
   <!-- Welcome -->
-  <div id="welcome">Hey, Welcome to CXTimer!</div>
+  <div id="welcome">
+    <span>Hey, Welcome to CXTimer!</span>
+    <span id="welcome-hint">Click anywhere to continue</span>
+  </div>
 
   <!-- Top bar -->
   <div id="topbar" style="display:none;">
@@ -504,7 +580,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="timer-display">
       <div id="timer-digits">8:00:00</div>
       <div id="timer-label">1AC — Affirmative speech</div>
+      <!-- Pause state controls -->
+      <div id="pause-controls">
+        <div id="pause-state-label">Paused</div>
+        <div id="pause-action-buttons">
+          <button class="pause-action-btn" id="resume-btn">Continue</button>
+          <button class="pause-action-btn" id="end-from-pause-btn">End</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Pause button (shown while timer is running) -->
+    <button id="pause-btn">Pause</button>
 
   </div>
 
@@ -518,8 +605,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h2>End early?</h2>
       <p>Are you sure you want to end this speech early?</p>
       <div id="modal-buttons">
-        <button class="modal-btn" id="cancel-end-btn">Cancel</button>
-        <button class="modal-btn" id="confirm-end-btn">End Now</button>
+        <button class="modal-btn" id="cancel-end-btn">Continue</button>
+        <button class="modal-btn" id="confirm-end-btn">End</button>
       </div>
     </div>
   </div>
@@ -569,6 +656,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   let eventLog = [];
   let confirmingEarlyEnd = false;
+  let welcomeTimeouts = [];
+  let pausedAt = 0;
 
   // ─── Dynamic step building ────────────────────────────────────────────────
   function buildSteps() {
@@ -620,6 +709,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const $modalContent = document.getElementById('modal-content');
   const $cancelBtn   = document.getElementById('cancel-end-btn');
   const $confirmBtn  = document.getElementById('confirm-end-btn');
+  const $pauseBtn    = document.getElementById('pause-btn');
+  const $pauseControls = document.getElementById('pause-controls');
+  const $resumeBtn   = document.getElementById('resume-btn');
+  const $endFromPauseBtn = document.getElementById('end-from-pause-btn');
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
   function pad(n, len=2) { return String(n).padStart(len, '0'); }
@@ -689,20 +782,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   // ─── Welcome sequence ────────────────────────────────────────────────────
+  function clearWelcomeTimeouts() {
+    welcomeTimeouts.forEach(id => clearTimeout(id));
+    welcomeTimeouts = [];
+  }
+
   function startWelcome() {
+    phase = 'welcome';
     $welcome.style.display = '';
+    $welcome.style.transition = 'opacity 1s ease';
     $topbar.style.display = 'none';
     $mainCenter.style.display = 'none';
     $prepArea.style.display = 'none';
     $summary.style.display = 'none';
     setBg('#1a1a1a', true);
 
-    setTimeout(() => { $welcome.style.opacity = '1'; }, 50);
-    setTimeout(() => { $welcome.style.opacity = '0'; }, 3000);
-    setTimeout(() => {
+    welcomeTimeouts.push(setTimeout(() => { $welcome.style.opacity = '1'; }, 50));
+    welcomeTimeouts.push(setTimeout(() => { $welcome.style.opacity = '0'; }, 3000));
+    welcomeTimeouts.push(setTimeout(() => {
       $welcome.style.display = 'none';
       showIdleScreen();
-    }, 4000);
+    }, 4000));
   }
 
   // ─── Idle screen ─────────────────────────────────────────────────────────
@@ -719,6 +819,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     $clickEndEarly.style.display = 'none';
     $clickCont.style.display = 'none';
     $stopFlash.style.display = 'none';
+    $pauseBtn.style.display = 'none';
+    $pauseControls.style.display = 'none';
 
     $settingsRow.style.display = roundStarted ? 'none' : 'flex';
     const showPrep = roundStarted && step.type === 'speech';
@@ -733,29 +835,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   // ─── Timer ───────────────────────────────────────────────────────────────
-  function startTimer() {
-    if (prepRunning) stopPrep(prepRunning);
-
-    phase = 'running';
-    roundStarted = true;
+  function runTimerTick() {
     const step = STEPS[currentStep];
-
-    $circleBtn.style.display = 'none';
-    $settingsRow.style.display = 'none';
-    $prepArea.style.display = 'none';
-    $timerWrap.style.display = 'flex';
-    $clickEndEarly.style.display = 'block';
-    $timerLabel.textContent = `${step.name} — ${step.desc}`;
-    $clickCont.style.display = 'none';
-
-    setBg(step.color);
-    warningApplied = false;
-
-    timerDuration = step.dur * 1000;
-    timerStart = performance.now();
-    timeRemaining = timerDuration;
-    $timerDigits.textContent = fmtTimer(timeRemaining, showMs);
-
     function tick() {
       const elapsed = performance.now() - timerStart;
       timeRemaining = Math.max(0, timerDuration - elapsed);
@@ -776,12 +857,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     timerRaf = requestAnimationFrame(tick);
   }
 
+  function startTimer() {
+    if (prepRunning) stopPrep(prepRunning);
+
+    phase = 'running';
+    roundStarted = true;
+    const step = STEPS[currentStep];
+
+    $circleBtn.style.display = 'none';
+    $settingsRow.style.display = 'none';
+    $prepArea.style.display = 'none';
+    $timerWrap.style.display = 'flex';
+    $clickEndEarly.style.display = 'block';
+    $pauseBtn.style.display = 'block';
+    $pauseControls.style.display = 'none';
+    $timerLabel.textContent = `${step.name} — ${step.desc}`;
+    $clickCont.style.display = 'none';
+
+    setBg(step.color);
+    warningApplied = false;
+
+    timerDuration = step.dur * 1000;
+    timerStart = performance.now();
+    timeRemaining = timerDuration;
+    $timerDigits.textContent = fmtTimer(timeRemaining, showMs);
+    runTimerTick();
+  }
+
   function timerEnd() {
     phase = 'ended';
     isFlashing = true;
     flashOn = true;
     $stopFlash.style.display = 'block';
     $clickEndEarly.style.display = 'none';
+    $pauseBtn.style.display = 'none';
     $clickCont.style.display = 'block';
 
     const step = STEPS[currentStep];
@@ -801,6 +910,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     flashOn = true;
     $stopFlash.style.display = 'none';
     $clickEndEarly.style.display = 'none';
+    $pauseBtn.style.display = 'none';
+    $pauseControls.style.display = 'none';
     $clickCont.style.display = 'block';
 
     const step = STEPS[currentStep];
@@ -822,6 +933,44 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     $app.style.backgroundColor = step.colorDark;
     void $app.offsetWidth;
     $app.style.transition = 'background-color 600ms ease';
+  }
+
+  // ─── Pause / Resume ──────────────────────────────────────────────────────
+  function pauseTimer() {
+    if (phase !== 'running') return;
+    phase = 'paused';
+    if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    pausedAt = timeRemaining;
+
+    $pauseBtn.style.display = 'none';
+    $clickEndEarly.style.display = 'none';
+    $pauseControls.style.display = 'flex';
+    setBg('#2a2a2a');
+  }
+
+  function resumeTimer() {
+    if (phase !== 'paused') return;
+    phase = 'running';
+
+    $pauseControls.style.display = 'none';
+    $pauseBtn.style.display = 'block';
+    $clickEndEarly.style.display = 'block';
+
+    const step = STEPS[currentStep];
+    setBg(warningApplied ? step.colorDark : step.color);
+
+    timerStart = performance.now();
+    timerDuration = pausedAt;
+    timeRemaining = pausedAt;
+    runTimerTick();
+  }
+
+  function endFromPause() {
+    if (phase !== 'paused') return;
+    $pauseControls.style.display = 'none';
+    const totalDur = STEPS[currentStep].dur * 1000;
+    const actualSecs = Math.round((totalDur - pausedAt) / 1000);
+    timerEndEarly(actualSecs);
   }
 
   // ─── End early flow ──────────────────────────────────────────────────────
@@ -847,6 +996,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // ─── Click to continue ───────────────────────────────────────────────────
   function handleClickContinue() {
     if (confirmingEarlyEnd) return;
+    if (phase === 'paused') return;
+    if (phase === 'welcome') {
+      clearWelcomeTimeouts();
+      $welcome.style.transition = 'none';
+      $welcome.style.opacity = '0';
+      $welcome.style.display = 'none';
+      showIdleScreen();
+      return;
+    }
     if (phase === 'running') {
       showEndEarlyConfirm();
       return;
@@ -948,6 +1106,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   // ─── Reset ───────────────────────────────────────────────────────────────
   function resetAll() {
+    clearWelcomeTimeouts();
+    pausedAt = 0;
     if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
     if (prepRaf) { cancelAnimationFrame(prepRaf); prepRaf = null; }
     if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
@@ -1054,6 +1214,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   $confirmBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     confirmEndEarly();
+  });
+
+  $pauseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    pauseTimer();
+  });
+
+  $resumeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resumeTimer();
+  });
+
+  $endFromPauseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    endFromPause();
   });
 
   $app.addEventListener('click', () => {
